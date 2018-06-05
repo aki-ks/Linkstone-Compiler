@@ -41,43 +41,25 @@ public class TemplateTransformer {
     }
 
     private void processFieldAccessors(ClassNode cn) {
-        Iterator<FieldNode> fieldIter = cn.fields.iterator();
-        Iterator<MethodNode> methodIter = cn.methods.iterator();
-        while (fieldIter.hasNext()) {
-            FieldNode fn = fieldIter.next();
+        AccessorCollector accessors = new AccessorCollector(cn);
+        for(FieldNode fn : accessors.getFields()) {
             FieldMeta fieldMeta = FieldMeta.from(fn);
             if(!fieldMeta.hasAnnotation())continue;
 
-            boolean isFinal = (fn.access & Opcodes.ACC_FINAL) != 0;
-            Set<Version> notYetSeenGetterVersions = new HashSet<>(fieldMeta.getVersions());
-            Set<Version> notYetSeenSetterVersions = new HashSet<>(fieldMeta.getVersions());
-
-            while (methodIter.hasNext()) {
-                MethodNode mn = methodIter.next();
-                GetterMeta getterMeta = GetterMeta.from(mn);
-
-                if(getterMeta.hasAnnotation()) {
-                    if(!getterMeta.getVersions().contains(this.version)) {
-                        methodIter.remove();
-                    }
-
-                    mn.name = GETTER_PREFIX + fn.name;
-
-                    notYetSeenGetterVersions.removeAll(getterMeta.getVersions());
-                } else if(!isFinal) {
-                    SetterMeta setterMeta = SetterMeta.from(mn);
-                    if(setterMeta.hasAnnotation()) {
-                        if(!setterMeta.getVersions().contains(this.version)) {
-                            methodIter.remove();
-                        }
-
-                        mn.name = SETTER_PREFIX + fn.name;
-
-                        notYetSeenSetterVersions.removeAll(setterMeta.getVersions());
-                    }
+            for(MethodNode getter : accessors.getGetters(fn)) {
+                MethodMeta meta = MethodMeta.from(getter);
+                if(!meta.getVersions().contains(this.version)) {
+                    cn.methods.remove(getter);
                 }
+                getter.name = GETTER_PREFIX + fn.name;
+            }
 
-                if(notYetSeenGetterVersions.isEmpty() && (isFinal || notYetSeenSetterVersions.isEmpty()))break;
+            for(MethodNode setter : accessors.getSetters(fn)) {
+                MethodMeta meta = MethodMeta.from(setter);
+                if(!meta.getVersions().contains(this.version)) {
+                    cn.methods.remove(meta);
+                }
+                setter.name = SETTER_PREFIX + fn.name;
             }
         }
     }
