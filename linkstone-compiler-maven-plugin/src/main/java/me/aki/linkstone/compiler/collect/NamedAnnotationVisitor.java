@@ -17,7 +17,7 @@ import java.util.Optional;
  * {@link Classfile} annotations to a NamedMeta.
  */
 public class NamedAnnotationVisitor<T extends NamedMeta> extends AnnotationVisitor {
-    private final T meta;
+    protected final T meta;
     protected List<Version> versions = new ArrayList<>();
     private Optional<String> name = Optional.empty();
 

@@ -12,7 +12,6 @@ import java.util.Optional;
  * Visitor that adds the values of a {@link Package} annotations to a {@link PackageMeta}
  */
 public class PackageMetaVisitor extends NamedAnnotationVisitor<PackageMeta> {
-    private final PackageMeta meta;
     private Optional<Mode> mode = Optional.empty();
 
     public PackageMetaVisitor(PackageMeta meta) {
@@ -21,7 +20,6 @@ public class PackageMetaVisitor extends NamedAnnotationVisitor<PackageMeta> {
 
     public PackageMetaVisitor(PackageMeta meta, AnnotationVisitor av) {
         super(meta, av);
-        this.meta = meta;
     }
 
     @Override
