@@ -7,6 +7,7 @@ import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 
+import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -63,6 +64,7 @@ public class IllegalGetterSetterSignatureLinter implements Linter {
 
     private void checkGetterSignatures(ClassNode cn, AccessorCollector accessors, ErrorReport report) {
         for(FieldNode field : accessors.getFields()) {
+            boolean isStatic = Modifier.isStatic(field.access);
             for(MethodNode getter : accessors.getGetters(field)) {
                 if (Type.getArgumentTypes(getter.desc).length != 0) {
                     ErrorReport.Method location = new ErrorReport.Method(cn.name, getter.name, getter.desc);
@@ -77,12 +79,21 @@ public class IllegalGetterSetterSignatureLinter implements Linter {
                     String message = "Getter return type must match field type (expected " + fieldType + " got " + returnType.getClassName() + ")";
                     report.addError(new ErrorReport.Error(message, location));
                 }
+
+                if(isStatic != Modifier.isStatic(getter.access)) {
+                    String staticString = isStatic ? "static" : "non-static";
+                    ErrorReport.Method location = new ErrorReport.Method(cn.name, getter.name, getter.desc);
+                    String message = "Getters for " + staticString + " fields must be " + staticString;
+                    report.addError(new ErrorReport.Error(message, location));
+                }
             }
         }
     }
 
     private void checkSetterSignatures(ClassNode cn, AccessorCollector accessors, ErrorReport report) {
         for(FieldNode field : accessors.getFields()) {
+            boolean isStatic = Modifier.isStatic(field.access);
+
             for(MethodNode setter : accessors.getSetters(field)) {
                 Type[] arguments = Type.getArgumentTypes(setter.desc);
                 if (arguments.length == 1) {
@@ -100,6 +111,13 @@ public class IllegalGetterSetterSignatureLinter implements Linter {
                 if (Type.getReturnType(setter.desc).getSort() != Type.VOID) {
                     ErrorReport.Method location = new ErrorReport.Method(cn.name, setter.name, setter.desc);
                     String message = "Setters must be of void type";
+                    report.addError(new ErrorReport.Error(message, location));
+                }
+
+                if(isStatic != Modifier.isStatic(setter.access)) {
+                    ErrorReport.Method location = new ErrorReport.Method(cn.name, setter.name, setter.desc);
+                    String staticString = isStatic ? "static" : "non-static";
+                    String message = "Setters for " + staticString + " fields must be " + staticString;
                     report.addError(new ErrorReport.Error(message, location));
                 }
             }
