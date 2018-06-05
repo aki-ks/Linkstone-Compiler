@@ -51,12 +51,12 @@ public class LinkstoneMojo extends AbstractMojo {
     }
 
     private void printErrors(List<ErrorReport.Error> errors) {
-        getLog().error("Found" + errors.size() + " errors in your Template");
+        getLog().error("Found " + errors.size() + " errors in your Template");
 
         for(ErrorReport.Error error : errors) {
             getLog().error(" ");
             getLog().error(error.getMessage());
-            getLog().error("Location: " + error.getMessage().toString());
+            getLog().error("Location: " + error.getLocation().toString());
         }
     }
 
