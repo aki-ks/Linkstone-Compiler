@@ -1,8 +1,8 @@
 package me.aki.linkstone.compiler;
 
+import static org.objectweb.asm.Opcodes.*;
 import me.aki.linkstone.compiler.meta.*;
 import me.aki.linkstone.annotations.Version;
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
@@ -51,6 +51,8 @@ public class TemplateTransformer {
                 if(!meta.getVersions().contains(this.version)) {
                     cn.methods.remove(getter);
                 }
+
+                getter.access = setPublic(getter.access);
                 getter.name = GETTER_PREFIX + fn.name;
             }
 
@@ -59,9 +61,17 @@ public class TemplateTransformer {
                 if(!meta.getVersions().contains(this.version)) {
                     cn.methods.remove(meta);
                 }
+                setter.access = setPublic(setter.access);
                 setter.name = SETTER_PREFIX + fn.name;
             }
         }
+    }
+
+    private int setPublic(int access) {
+        access |= ACC_PUBLIC;
+        access &= ~ACC_PRIVATE;
+        access &= ~ACC_PROTECTED;
+        return access;
     }
 
     private void processFields(List<FieldNode> fields) {
