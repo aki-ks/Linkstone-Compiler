@@ -1,6 +1,7 @@
 package me.aki.linkstone.compiler;
 
 import me.aki.linkstone.annotations.Version;
+import me.aki.linkstone.compiler.linting.ErrorReport;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -37,9 +38,26 @@ public class LinkstoneMojo extends AbstractMojo {
         LinkstoneCompiler compiler = new LinkstoneCompiler();
         List<ClassNode> templates = compiler.loadClasses(outputDir);
 
+        List<ErrorReport.Error> errors = compiler.runLints(templates).getErrors();
+        if(!errors.isEmpty()) {
+            printErrors(errors);
+            throw new MojoExecutionException("Templates contain errors");
+        }
+
         FileUtils.delete(outputDir);
 
         List<ClassNode> generatedClasses = compiler.generateClasses(templates, version);
         compiler.writeClasses(outputDir, generatedClasses);
     }
+
+    private void printErrors(List<ErrorReport.Error> errors) {
+        getLog().error("Found" + errors.size() + " errors in your Template");
+
+        for(ErrorReport.Error error : errors) {
+            getLog().error(" ");
+            getLog().error(error.getMessage());
+            getLog().error("Location: " + error.getMessage().toString());
+        }
+    }
+
 }

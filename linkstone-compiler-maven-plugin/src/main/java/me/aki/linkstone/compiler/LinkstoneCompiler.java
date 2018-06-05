@@ -1,6 +1,7 @@
 package me.aki.linkstone.compiler;
 
 import me.aki.linkstone.annotations.Version;
+import me.aki.linkstone.compiler.linting.*;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.commons.ClassRemapper;
@@ -12,6 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LinkstoneCompiler {
+    private final static Linter[] LINTER = new Linter[] {
+            new DuplicatedClassMemberLinter(),
+            new IllegalGetterSetterSignatureLinter(),
+            new MissingClassVersionLinter()
+    };
+
     public List<ClassNode> loadClasses(File classDirectory) {
         List<ClassNode> classes = new ArrayList<>();
         for(File classfile : FileUtils.listFiles(classDirectory)) {
@@ -27,6 +34,15 @@ public class LinkstoneCompiler {
         }
         return classes;
     }
+
+    public ErrorReport runLints(List<ClassNode> templates) {
+        ErrorReport report = new ErrorReport();
+        for(Linter linter : LINTER) {
+            linter.lint(templates, report);
+        }
+        return report;
+    }
+
 
     public List<ClassNode> generateClasses(List<ClassNode> templates, Version version) {
         MappingModel mappingModel = collectMappingModel(templates, version);
