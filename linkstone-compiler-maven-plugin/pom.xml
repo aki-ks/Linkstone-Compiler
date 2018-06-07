@@ -20,7 +20,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>me.aki.glowstone</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>linkstone-annotations</artifactId>
             <version>${project.version}</version>
         </dependency>

@@ -17,7 +17,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>me.aki.glowstone</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>linkstone-annotations</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -32,9 +32,9 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>me.aki.glowstone</groupId>
+                <groupId>${project.groupId}</groupId>
                 <artifactId>linkstone-compiler-maven-plugin</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>${project.version}</version>
                 <configuration>
                     <version>1.12-R1</version>
                 </configuration>
