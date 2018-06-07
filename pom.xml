@@ -13,6 +13,7 @@
         <module>example-usage</module>
         <module>linkstone-compiler-maven-plugin</module>
         <module>linkstone-annotations</module>
+        <module>linkstone-runtime</module>
     </modules>
 
 </project>
