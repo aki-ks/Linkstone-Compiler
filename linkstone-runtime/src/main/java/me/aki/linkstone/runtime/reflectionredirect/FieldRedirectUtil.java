@@ -1,5 +1,8 @@
 package me.aki.linkstone.runtime.reflectionredirect;
 
+import sun.misc.Unsafe;
+
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 
 /**
@@ -7,6 +10,31 @@ import java.lang.reflect.Field;
  * redirect its get and set methods to a getter and setter.
  */
 public class FieldRedirectUtil {
+    private static Boolean isSupported = null;
+
+    private final static boolean testField = false;
+    public static boolean $linkstone$getter$testField() {
+        return true;
+    }
+
+    /**
+     * Test whether this hack works on your current JVM.
+     *
+     * @return whether this utility works
+     */
+    public static boolean isSupported() {
+        if(isSupported == null) {
+            try {
+                Field f = FieldRedirectUtil.class.getDeclaredField("testField");
+                new FieldRedirectUtil().redirectField(f);
+                isSupported = f.getBoolean(null);
+            } catch(Throwable t) {
+                isSupported = false;
+            }
+        }
+        return isSupported;
+    }
+
     private final DynamicClassLoader classloader = new DynamicClassLoader();
     private final Field[] accessorFields;
 
@@ -17,6 +45,21 @@ public class FieldRedirectUtil {
         };
 
         for(Field f : this.accessorFields) {
+            makeAccessible(f);
+        }
+    }
+
+    private void makeAccessible(Field f) {
+        try {
+            // Try to avoid "illegal reflective access" warning on jvm 9+
+            Field theUnsafeField = Unsafe.class.getDeclaredField("theUnsafe");
+            theUnsafeField.setAccessible(true);
+            Unsafe theUnsafe = (Unsafe)theUnsafeField.get(null);
+
+            Field overrideField = AccessibleObject.class.getDeclaredField("override");
+            long overrideFieldOffset = theUnsafe.objectFieldOffset(overrideField);
+            theUnsafe.putBoolean(f, overrideFieldOffset, true);
+        } catch (Throwable t) {
             f.setAccessible(true);
         }
     }
